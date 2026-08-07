@@ -1,5 +1,7 @@
-package com.bankstar.recommendation;
+package com.bankstar.recommendation.rules;
 
+import com.bankstar.recommendation.dto.RecommendationDto;
+import com.bankstar.recommendation.repository.RecommendationRepository;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;

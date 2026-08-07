@@ -1,4 +1,4 @@
-package com.bankstar.recommendation;
+package com.bankstar.recommendation.dto;
 
 public class RecommendationDto {
     private String id;
