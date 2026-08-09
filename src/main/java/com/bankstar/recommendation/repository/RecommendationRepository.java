@@ -1,5 +1,6 @@
 package com.bankstar.recommendation.repository;
 
+import com.bankstar.recommendation.cache.UserStatsCache;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -10,22 +11,28 @@ import java.util.*;
 public class RecommendationRepository {
 
     private final JdbcTemplate jdbcTemplate;
+    private final UserStatsCache cache;
 
-    public RecommendationRepository(JdbcTemplate jdbcTemplate) {
+    public RecommendationRepository(JdbcTemplate jdbcTemplate, UserStatsCache cache) {
         this.jdbcTemplate = jdbcTemplate;
+        this.cache = cache;
     }
 
     public UserStats getStats(UUID userId) {
+        return cache.get(userId);
+    }
+
+    public UserStats loadStats(UUID userId) {
         String sql = """
             SELECT
                 p.type AS product_type,
-                t.transaction_type,
+                t.type AS tx_type,
                 COUNT(*) AS cnt,
                 COALESCE(SUM(t.amount), 0) AS amount_sum
             FROM transactions t
             JOIN products p ON t.product_id = p.id
             WHERE t.user_id = ?
-            GROUP BY p.type, t.transaction_type
+            GROUP BY p.type, t.type
             """;
 
         Map<String, Long> countByType = new HashMap<>();
@@ -33,18 +40,20 @@ public class RecommendationRepository {
         Map<String, BigDecimal> sumWithdrawalByType = new HashMap<>();
 
         jdbcTemplate.query(sql, (rs, rowNum) -> {
-            String type = rs.getString("product_type");
-            String txType = rs.getString("transaction_type");
+            String productType = rs.getString("product_type");
+            String txType = rs.getString("tx_type"); // В БД это колонка type, содержит WITHDRAW/DEPOSIT
             long cnt = rs.getLong("cnt");
             BigDecimal amount = rs.getBigDecimal("amount_sum");
             if (amount == null) amount = BigDecimal.ZERO;
 
-            countByType.merge(type, cnt, Long::sum);
+            // 1. Считаем количество транзакций по типу продукта (для правила ACTIVE_USER_OF)
+            countByType.merge(productType, cnt, Long::sum);
 
+            // 2. Считаем суммы. ВАЖНО: в БД тип операции WITHDRAW, а не WITHDRAWAL
             if ("DEPOSIT".equals(txType)) {
-                sumDepositByType.merge(type, amount, BigDecimal::add);
-            } else if ("WITHDRAWAL".equals(txType)) {
-                sumWithdrawalByType.merge(type, amount, BigDecimal::add);
+                sumDepositByType.merge(productType, amount, BigDecimal::add);
+            } else if ("WITHDRAW".equals(txType)) {
+                sumWithdrawalByType.merge(productType, amount, BigDecimal::add);
             }
             return null;
         }, userId);
@@ -67,6 +76,10 @@ public class RecommendationRepository {
 
         public boolean hasProductType(String type) {
             return countByType.getOrDefault(type, 0L) > 0;
+        }
+
+        public boolean isActiveUserOf(String type) {
+            return countByType.getOrDefault(type, 0L) >= 5;
         }
 
         public BigDecimal sumDeposit(String type) {

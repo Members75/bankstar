@@ -21,8 +21,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	runtimeOnly 'com.h2database:h2'
-
-	// Для миграций (опционально, но правильно)
+	implementation 'com.github.ben-manes.caffeine:caffeine'
 	implementation 'org.liquibase:liquibase-core'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
