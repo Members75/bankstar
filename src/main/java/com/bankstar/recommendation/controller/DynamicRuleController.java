@@ -1,17 +1,19 @@
 package com.bankstar.recommendation.controller;
 
+import com.bankstar.recommendation.dto.ApiResponse;
 import com.bankstar.recommendation.dto.DynamicRuleRequest;
 import com.bankstar.recommendation.dto.DynamicRuleResponse;
 import com.bankstar.recommendation.entity.DynamicRule;
 import com.bankstar.recommendation.repository.DynamicRuleRepository;
-import com.fasterxml.jackson.databind.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/rule")
@@ -19,7 +21,7 @@ import java.util.UUID;
 public class DynamicRuleController {
 
     private final DynamicRuleRepository repository;
-    private final ObjectMapper objectMapper = new ObjectMapper(); // один экземпляр
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PostMapping
     public ResponseEntity<DynamicRuleResponse> createRule(@RequestBody DynamicRuleRequest request) {
@@ -28,54 +30,40 @@ public class DynamicRuleController {
         rule.setProductId(request.getProductId());
         rule.setProductText(request.getProductText());
 
-        try {
-            rule.setRuleJson(objectMapper.valueToTree(request.getRule()));
-        } catch (Exception e) {
-            throw new RuntimeException("Ошибка сериализации rule", e);
-        }
+        rule.setRuleJson(objectMapper.valueToTree(request.getRule()));
 
         DynamicRule saved = repository.save(rule);
-
-        DynamicRuleResponse response = new DynamicRuleResponse();
-        response.setId(saved.getId());
-        response.setProductName(saved.getProductName());
-        response.setProductId(saved.getProductId());
-        response.setProductText(saved.getProductText()); // было: saved.productText
-
-        try {
-            response.setRule(objectMapper.treeToValue(saved.getRuleJson(), List.class));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Ошибка десериализации rule", e);
-        }
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(mapToResponse(saved));
     }
 
     @GetMapping
-    public ResponseEntity<List<DynamicRuleResponse>> listRules() {
+    public ResponseEntity<ApiResponse<List<DynamicRuleResponse>>> listRules() {
         List<DynamicRule> rules = repository.findAll();
-
-        List<DynamicRuleResponse> responses = rules.stream().map(r -> {
-            DynamicRuleResponse resp = new DynamicRuleResponse();
-            resp.setId(r.getId());
-            resp.setProductName(r.getProductName());
-            resp.setProductId(r.getProductId());
-            resp.setProductText(r.getProductText());
-
-            try {
-                resp.setRule(objectMapper.treeToValue(r.getRuleJson(), List.class));
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("Ошибка десериализации rule", e);
-            }
-            return resp;
-        }).toList();
-
-        return ResponseEntity.ok(responses);
+        List<DynamicRuleResponse> responses = rules.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(new ApiResponse<>(responses));
     }
 
     @DeleteMapping("/{productId}")
     public ResponseEntity<Void> deleteRule(@PathVariable UUID productId) {
         repository.deleteByProductId(productId);
         return ResponseEntity.noContent().build();
+    }
+
+    @SneakyThrows
+    private DynamicRuleResponse mapToResponse(DynamicRule r) {
+        DynamicRuleResponse resp = new DynamicRuleResponse();
+        resp.setId(r.getId());
+        resp.setProductName(r.getProductName());
+        resp.setProductId(r.getProductId());
+        resp.setProductText(r.getProductText());
+
+        if (r.getRuleJson() != null) {
+            resp.setRule(objectMapper.treeToValue(r.getRuleJson(), List.class));
+        } else {
+            resp.setRule(null);
+        }
+        return resp;
     }
 }

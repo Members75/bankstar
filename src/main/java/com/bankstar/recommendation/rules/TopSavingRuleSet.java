@@ -11,8 +11,8 @@ import java.util.UUID;
 @Component
 public class TopSavingRuleSet implements RecommendationRuleSet {
 
-    private static final String ID = "59efc529-2fff-41af-baff-90ccd7402925";
-    private static final BigDecimal THRESHOLD = new BigDecimal("50000");
+    private static final String ID = "c3d7e9f1-a2b3-4c5d-6e7f-8a9b0c1d2e3f";
+    private static final BigDecimal THRESHOLD_HIGH_SAVING = new BigDecimal("5000");
 
     private final RecommendationRepository repository;
 
@@ -24,21 +24,14 @@ public class TopSavingRuleSet implements RecommendationRuleSet {
     public Optional<RecommendationDto> check(UUID userId) {
         var stats = repository.getStats(userId);
 
-        boolean hasDebit = stats.hasProductType("DEBIT");
-        BigDecimal sumDebitDeposit = stats.sumDeposit("DEBIT");
-        BigDecimal sumSavingDeposit = stats.sumDeposit("SAVING");
-        BigDecimal sumDebitWithdrawal = stats.sumWithdrawal("DEBIT");
+        boolean hasSaving = stats.hasProductType("SAVING");
+        BigDecimal savingSum = stats.sumDeposit("SAVING");
 
-        boolean cond1 = sumDebitDeposit.compareTo(THRESHOLD) >= 0
-                || sumSavingDeposit.compareTo(THRESHOLD) >= 0;
-
-        boolean cond2 = sumDebitDeposit.compareTo(sumDebitWithdrawal) > 0;
-
-        if (hasDebit && cond1 && cond2) {
+        if (hasSaving && savingSum.compareTo(THRESHOLD_HIGH_SAVING) > 0) {
             return Optional.of(new RecommendationDto(
                     ID,
-                    "Top Saving",
-                    "Откройте свою собственную «Копилку» с нашим банком! «Копилка» — это уникальный банковский инструмент, который поможет вам легко и удобно накапливать деньги на важные цели. Больше никаких забытых чеков и потерянных квитанций — всё под контролем!\n\nПреимущества «Копилки»:\n\nНакопление средств на конкретные цели. Установите лимит и срок накопления, и банк будет автоматически переводить определенную сумму на ваш счет.\n\nПрозрачность и контроль. Отслеживайте свои доходы и расходы, контролируйте процесс накопления и корректируйте стратегию при необходимости.\n\nБезопасность и надежность. Ваши средства находятся под защитой банка, а доступ к ним возможен только через мобильное приложение или интернет-банкинг.\n\nНачните использовать «Копилку» уже сегодня и станьте ближе к своим финансовым целям!"
+                    "Топ-накопительный счёт",
+                    "Вы активно копите — мы ценим это! Откройте наш премиальный накопительный счёт с повышенной ставкой и дополнительными бонусами для крупных накоплений. Максимальная доходность, гибкие условия пополнения и снятия, а также персональный менеджер, который поможет управлять вашими финансами."
             ));
         }
         return Optional.empty();

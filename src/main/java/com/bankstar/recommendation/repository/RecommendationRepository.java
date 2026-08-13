@@ -2,6 +2,7 @@ package com.bankstar.recommendation.repository;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -12,6 +13,10 @@ public class RecommendationRepository {
 
     public RecommendationRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public UserStats getStats(UUID userId) {
+        return loadStats(userId);
     }
 
     public UserStats loadStats(UUID userId) {
@@ -57,19 +62,25 @@ public class RecommendationRepository {
             this.sumDepositByType = sumDepositByType;
             this.sumWithdrawalByType = sumWithdrawalByType;
         }
-        public Map<String, Long> getCountByType() {
-            return countByType;
-        }
+
+        public Map<String, Long> getCountByType() { return countByType; }
         public Map<String, BigDecimal> getSumDepositByType() { return sumDepositByType; }
         public Map<String, BigDecimal> getSumWithdrawalByType() { return sumWithdrawalByType; }
 
         public boolean hasProductType(String type) {
             return countByType.getOrDefault(type, 0L) > 0;
         }
+
         public boolean isActiveUserOf(String type) {
             return countByType.getOrDefault(type, 0L) >= 5;
         }
-        public BigDecimal sumDeposit(String type) { return sumDepositByType.getOrDefault(type, BigDecimal.ZERO); }
-        public BigDecimal sumWithdrawal(String type) { return sumWithdrawalByType.getOrDefault(type, BigDecimal.ZERO); }
+
+        public BigDecimal sumDeposit(String type) {
+            return sumDepositByType.getOrDefault(type, BigDecimal.ZERO);
+        }
+
+        public BigDecimal sumWithdrawal(String type) {
+            return sumWithdrawalByType.getOrDefault(type, BigDecimal.ZERO);
+        }
     }
 }
