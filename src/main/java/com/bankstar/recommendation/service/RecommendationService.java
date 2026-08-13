@@ -2,9 +2,10 @@ package com.bankstar.recommendation.service;
 
 import com.bankstar.recommendation.dto.RecommendationDto;
 import com.bankstar.recommendation.dto.RecommendationResponse;
-import com.bankstar.recommendation.repository.DynamicRuleJdbcRepository;
+import com.bankstar.recommendation.dto.DynamicRuleJdbcRepository;
 import com.bankstar.recommendation.repository.RecommendationRepository;
 import com.bankstar.recommendation.rules.RecommendationRuleSet;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,7 +25,6 @@ public class RecommendationService {
     public RecommendationResponse getRecommendations(UUID userId) {
         List<RecommendationDto> recommendations = new ArrayList<>();
 
-        // 1. Проверка фиксированных правил
         for (RecommendationRuleSet rule : fixedRuleSets) {
             Optional<RecommendationDto> opt = rule.check(userId);
             if (opt.isPresent()) {

@@ -1,13 +1,9 @@
-package com.bankstar.recommendation.repository;
+package com.bankstar.recommendation.dto;
 
-import com.bankstar.recommendation.dto.DynamicRuleResponse;
-import com.bankstar.recommendation.dto.RuleCondition;
-import com.bankstar.recommendation.rules.DynamicRuleRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 public class DynamicRuleJdbcRepository {

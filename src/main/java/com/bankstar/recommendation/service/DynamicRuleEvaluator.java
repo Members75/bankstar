@@ -17,7 +17,7 @@ public class DynamicRuleEvaluator {
     private final RecommendationRepository repository;
 
     public RecommendationDto evaluate(UUID userId, String productName, UUID productId, String productText, List<RuleCondition> conditions) {
-        var stats = repository.getStats(userId);
+        var stats = repository.loadStats(userId);
 
         for (RuleCondition condition : conditions) {
             boolean result = evaluateCondition(condition, stats);
@@ -47,9 +47,7 @@ public class DynamicRuleEvaluator {
 
             case "ACTIVE_USER_OF":
                 String productType2 = args.get(0);
-                // Логика: нужно посчитать количество транзакций по типу продукта
-                // Для упрощения считаем, что stats.countByType содержит количество транзакций
-                return stats.countByType.getOrDefault(productType2, 0L) >= 5;
+                return stats.getCountByType().getOrDefault(productType2, 0L) >= 5;
 
             case "TRANSACTION_SUM_COMPARE":
                 String productType3 = args.get(0);

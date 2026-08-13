@@ -9,5 +9,6 @@ import java.util.UUID;
 
 @Repository
 public interface DynamicRuleRepository extends JpaRepository<DynamicRule, UUID> {
-    List<DynamicRule> findAll();
+
+    void deleteByProductId(UUID productId);
 }
