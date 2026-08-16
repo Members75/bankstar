@@ -24,17 +24,24 @@ public class Invest500RuleSet implements RecommendationRuleSet {
     public Optional<RecommendationDto> check(UUID userId) {
         var stats = repository.getStats(userId);
 
-        boolean hasDebit = stats.hasProductType("DEBIT");
-        boolean hasInvest = stats.hasProductType("INVEST");
+        boolean hasDebit = stats.hasProductType("DEBIT_CARD");
+        boolean hasInvest = stats.hasProductType("INVESTMENT");
         BigDecimal sumSaving = stats.sumDeposit("SAVING");
 
         if (hasDebit && !hasInvest && sumSaving.compareTo(THRESHOLD_SAVING) > 0) {
-            return Optional.of(new RecommendationDto(
+
+            RecommendationDto dto = new RecommendationDto(
                     ID,
                     "Invest 500",
-                    "Откройте свой путь к успеху с индивидуальным инвестиционным счетом (ИИС) от нашего банка! Воспользуйтесь налоговыми льготами и начните инвестировать с умом. Пополните счет до конца года и получите выгоду в виде вычета на взнос в следующем налоговом периоде. Не упустите возможность разнообразить свой портфель, снизить риски и следить за актуальными рыночными тенденциями. Откройте ИИС сегодня и станьте ближе к финансовой независимости!"
-            ));
+                    "Откройте свой путь к успеху с индивидуальным инвестиционным счетом (ИИС) от нашего банка! Воспользуйтесь налоговыми льготами и начните инвестировать с умом."
+            );
+
+            UUID productId = UUID.fromString("33333333-3333-3333-3333-333333333333");
+            dto.setProductId(productId);
+
+            return Optional.of(dto);
         }
+
         return Optional.empty();
     }
 }

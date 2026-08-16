@@ -16,7 +16,7 @@ public class DynamicRuleJdbcRepository {
 
     public void save(DynamicRuleRequest request) {
         String sql = "INSERT INTO dynamic_rules (product_name, product_id, product_text, rule_json) VALUES (?, ?, ?, ?)";
-        jdbcTemplate.update(sql, request.getProductName(), request.getProductId(), request.getProductText(), toJson(request.getRule()));
+        jdbcTemplate.update(sql, request.getProductName(), request.getProductId(), request.getProductText());
     }
 
     public List<DynamicRuleResponse> findAll() {
@@ -27,7 +27,6 @@ public class DynamicRuleJdbcRepository {
             resp.setProductName(rs.getString("product_name"));
             resp.setProductId(rs.getObject("product_id", UUID.class));
             resp.setProductText(rs.getString("product_text"));
-            resp.setRule(fromJson(rs.getString("rule_json")));
             return resp;
         });
     }
@@ -35,15 +34,5 @@ public class DynamicRuleJdbcRepository {
     public void delete(UUID productId) {
         String sql = "DELETE FROM dynamic_rules WHERE product_id = ?";
         jdbcTemplate.update(sql, productId);
-    }
-
-    private String toJson(List<RuleCondition> rule) {
-        // Используем простой JSON-сериализатор (можно заменить на Jackson)
-        return rule.toString(); // Замени на реальную сериализацию через ObjectMapper
-    }
-
-    private List<RuleCondition> fromJson(String json) {
-        // Используем простой JSON-десериализатор (можно заменить на Jackson)
-        return new ArrayList<>(); // Замени на реальную десериализацию через ObjectMapper
     }
 }
