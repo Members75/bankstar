@@ -50,4 +50,16 @@ public class RecommendationService {
 
         return recommendations;
     }
+
+    /**
+     * Возвращает список рекомендаций для пользователя.
+     * Соответствует требованию US-001.
+     *
+     * @param userId идентификатор пользователя
+     * @return список рекомендаций
+     */
+    public List<RecommendationDto> getRecommendationsForUser(UUID userId) {
+        // TODO: реализовать логику получения рекомендаций из базы данных
+        return List.of(); // пока возвращаем пустой список
+    }
 }
