@@ -21,6 +21,7 @@ public class RecommendationController {
 
     @GetMapping("/recommendation/{user_id}")
     public ApiResponse<List<RecommendationDto>> getRecommendation(@PathVariable("user_id") UUID user_id) {
-        return service.getRecommendationsAsync(user_id).join();
+        var recommendations = service.getRecommendationsForUser(user_id);
+        return new ApiResponse<>(recommendations);
     }
 }

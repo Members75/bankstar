@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,15 +19,18 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/rule")
 @RequiredArgsConstructor
+@Transactional("rulesTransactionManager")
 public class RulesController {
 
     private final RulesService rulesService;
 
     @PostMapping
-    public ResponseEntity<DynamicRuleResponse> createRule(@Valid @RequestBody DynamicRuleRequest request) {
+    public ResponseEntity<DynamicRuleResponse> createRule(
+            @Valid @RequestBody DynamicRuleRequest request) {
+
         RuleEntity entity = rulesService.saveRule(request);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(toResponse(entity));
+        DynamicRuleResponse resp = toResponse(entity);
+        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
 
     @GetMapping

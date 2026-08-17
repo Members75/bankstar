@@ -1,11 +1,13 @@
 package com.bankstar.recommendation;
 
+import com.bankstar.recommendation.dto.RecommendationDto;
 import com.bankstar.recommendation.dto.RecommendationResponse;
 import com.bankstar.recommendation.service.RecommendationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,15 +22,16 @@ class RecommendationServiceTest {
     void testRecommendationLogicWithRealData() {
         UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
-        RecommendationResponse resp = service.getRecommendations(userId);
+        List<RecommendationDto> recommendations = service.getRecommendationsForUser(userId);
 
-        assertNotNull(resp);
-        assertEquals(userId, resp.getUser_id());
-        assertNotNull(resp.getRecommendations());
+        assertNotNull(recommendations, "Список рекомендаций не должен быть null");
+        assertFalse(recommendations.isEmpty(), "Для тестового пользователя должны быть рекомендации");
 
-        assertTrue(resp.getRecommendations() != null);
+        System.out.println("Рекомендации для пользователя " + userId + ": " + recommendations.size());
 
-        System.out.println("Рекомендации для пользователя " + userId + ": " + resp.getRecommendations().size());
+        RecommendationDto first = recommendations.get(0);
+        assertNotNull(first.getName(), "У рекомендации должно быть productName");
+
     }
 
     @Test

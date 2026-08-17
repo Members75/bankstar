@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional("rulesTransactionManager")
 public class RulesService {
 
     private final RuleRepository ruleRepository;
@@ -25,6 +27,7 @@ public class RulesService {
         entity.setProductName(request.getProductName());
         entity.setProductId(request.getProductId());
         entity.setProductText(request.getProductText());
+
         try {
             entity.setRuleJson(objectMapper.writeValueAsString(request.getRule()));
         } catch (IOException e) {
@@ -42,9 +45,7 @@ public class RulesService {
     }
 
     public List<RuleCondition> deserializeConditions(String json) {
-        if (json == null || json.isBlank()) {
-            return List.of();
-        }
+        if (json == null || json.isBlank()) return List.of();
         try {
             return objectMapper.readValue(json, new TypeReference<>() {});
         } catch (IOException e) {

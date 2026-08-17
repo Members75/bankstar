@@ -7,6 +7,7 @@ import com.bankstar.recommendation.rules.RecommendationRuleSet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,23 +19,35 @@ import java.util.stream.Collectors;
 public class RecommendationService {
 
     private final List<RecommendationRuleSet> ruleSets;
+    private final RulesService rulesService;
+    private final DynamicRuleEvaluator dynamicRuleEvaluator;
 
     public List<RecommendationDto> getRecommendationsForUser(UUID userId) {
-        return ruleSets.stream()
-                .map(ruleSet -> ruleSet.check(userId))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
-    }
+        var recommendations = new ArrayList<RecommendationDto>();
 
-    public CompletableFuture<ApiResponse<List<RecommendationDto>>> getRecommendationsAsync(UUID userId) {
-        return CompletableFuture.supplyAsync(() -> {
-            var recommendations = getRecommendationsForUser(userId);
-            return new ApiResponse<>(recommendations);
-        });
-    }
+        recommendations.addAll(
+                ruleSets.stream()
+                        .map(r -> r.check(userId))
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .toList()
+        );
 
-    public RecommendationResponse getRecommendations(UUID userId) {
-        return null;
+        var dynamicRules = rulesService.findAllRules();
+        for (var rule : dynamicRules) {
+            var conditions = rulesService.deserializeConditions(rule.getRuleJson());
+            var dto = dynamicRuleEvaluator.evaluate(
+                    userId,
+                    rule.getProductName(),
+                    rule.getProductId(),
+                    rule.getProductText(),
+                    conditions
+            );
+            if (dto != null) {
+                recommendations.add(dto);
+            }
+        }
+
+        return recommendations;
     }
 }

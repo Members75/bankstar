@@ -15,7 +15,13 @@ public class UserStatsCache {
     public UserStatsCache(RecommendationRepository repository) {
         this.statsCache = Caffeine.newBuilder()
                 .expireAfterWrite(5, TimeUnit.MINUTES)
-                .build(repository::loadStats);
+                .build(key -> {
+                    try {
+                        return repository.loadStats(key);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to load stats for user " + key, e);
+                    }
+                });
     }
 
     public RecommendationRepository.UserStats get(UUID userId) {
