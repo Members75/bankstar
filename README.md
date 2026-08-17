@@ -28,5 +28,5 @@
 - [Инструкция по развертыванию](docs/deployment.md)
 
 ## Ссылки
-- GitHub Issues: [ссылка на твой репозиторий/issues]
-- GitHub Projects: [ссылка на проект]
+- GitHub Issues: https://github.com/Members75/bankstar
+- GitHub Projects: https://github.com/users/Members75/projects/1
